@@ -63,7 +63,6 @@ export function ClarifyStep({
           <div className="space-y-2">
             <Textarea
               value={answer}
-              maxLength={3000}
               onChange={(event) => onAnswer(event.target.value)}
               placeholder="Введите ответ..."
               className="min-h-36 resize-y rounded-xl border-[#8EA1AE]/35 bg-[#DCE0E8]/18 p-4 text-base leading-7 text-[#27363F] placeholder:text-[#685652]/45 focus-visible:border-[#6B212C] focus-visible:ring-[#6B212C]/12"
