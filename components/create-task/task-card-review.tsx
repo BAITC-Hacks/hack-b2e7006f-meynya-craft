@@ -1,6 +1,8 @@
 "use client";
 
 import { ArrowLeft, CheckCircle2, Info, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ScorePanel } from "@/components/tasks/task-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,26 +65,26 @@ export function TaskCardReview({ card, score, confirmed, onBack, onConfirm, onEd
         </Card>
 
         <div className="space-y-4 lg:sticky lg:top-6">
+          {score && <ScorePanel card={card} />}
           <Card className="rounded-2xl border border-[#8EA1AE]/25 bg-white/95 shadow-[0_18px_55px_rgba(39,54,63,0.08)] ring-0">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold tracking-[-0.02em] text-[#27363F]">Качество задачи</CardTitle>
+              <CardTitle className="text-lg font-semibold tracking-[-0.02em] text-[#27363F]">Публикация</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-xl border border-[#8EA1AE]/20 bg-[#DCE0E8]/40 p-4 text-sm leading-6 text-[#685652]">
-                {confirmed && score ? (
-                  <><span className="block text-3xl font-semibold tracking-[-0.04em] text-[#27363F]">{score.total}/100</span>Оценка сформированной карточки</>
-                ) : "Оценка появится после подтверждения."}
-              </div>
               {confirmed ? (
                 <div className="flex items-start gap-3 rounded-xl border border-[#6B212C]/15 bg-[#6B212C]/6 p-4 text-sm text-[#6B212C]">
                   <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
-                  <span><strong className="block">Задача подтверждена</strong>Она готова к следующему этапу.</span>
+                  <span><strong className="block">Задача опубликована</strong>Теперь студенты могут отправлять отклики.</span>
                 </div>
               ) : (
                 <Button size="lg" onClick={onConfirm} className="h-11 w-full rounded-xl bg-[#6B212C] text-white shadow-sm hover:bg-[#571923] focus-visible:ring-[#6B212C]/25">
                   Подтвердить задачу
                 </Button>
               )}
+              {confirmed && <div className="space-y-3 text-sm font-semibold text-[#6B212C]">
+                <Link href="/catalog" className="block underline">Перейти в каталог</Link>
+                <Link href={`/business/${card.id}`} className="block underline">Управлять задачей и откликами</Link>
+              </div>}
             </CardContent>
           </Card>
           <Button variant="ghost" size="lg" onClick={onBack} className="h-10 w-full text-[#685652] hover:bg-[#DCE0E8]/60 hover:text-[#27363F]">

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { calculateScore } from "@/lib/score";
 import { useTaskStore } from "@/lib/store";
+import { TaskNavigation } from "@/components/tasks/task-ui";
 import { ClarifyStep } from "./clarify-step";
 import { CreateTaskError } from "./create-task-error";
 import { CreateTaskLoading } from "./create-task-loading";
@@ -191,12 +192,7 @@ export function CreateTaskFlow() {
       className="min-h-screen bg-[#DCE0E8]/35 text-[#27363F]"
       style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}
     >
-      <header className="border-b border-[#8EA1AE]/25 bg-white/85 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <span className="text-xl font-bold tracking-[-0.03em] text-[#27363F]">Taskup</span>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#685652]/65">Конструктор бизнес-задач</span>
-        </div>
-      </header>
+      <TaskNavigation role="business" />
 
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
         <CreateTaskStepper current={activeStep} />

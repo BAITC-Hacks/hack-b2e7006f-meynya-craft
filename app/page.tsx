@@ -38,7 +38,8 @@ export default function Home() {
             <Link href="/create" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#6B212C] px-6 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(107,33,44,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#571923] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#6B212C]/20">
               Предложить задачу <ArrowRight className="size-4" />
             </Link>
-            <span className="text-sm text-[#685652]/65">Первый черновик — за несколько минут</span>
+            <Link href="/catalog" className="inline-flex h-12 items-center justify-center rounded-xl border border-[#8EA1AE]/40 bg-white px-6 text-sm font-semibold text-[#27363F] hover:bg-[#DCE0E8]/50">Я студент — найти задачу</Link>
+            <Link href="/business" className="text-sm font-semibold text-[#6B212C] underline">Задачи бизнеса</Link>
           </div>
         </div>
 
