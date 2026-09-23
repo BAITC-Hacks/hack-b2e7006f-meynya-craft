@@ -1,36 +1,181 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskUp
 
-## Getting Started
+Бизнес описывает задачу → AI уточняет пробелы → формирует карточку → бизнес
+редактирует и подтверждает её → студент отправляет отклик → бизнес выбирает Accept/Reject.
+AI пишет текст; score всегда считает код. Демо работает без БД и авторизации.
 
-First, run the development server:
+## Запуск
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. Установите Node.js 22 LTS или новее.
+2. Выполните `npm ci` в папке с package.json.
+3. Создайте `.env.local` рядом с package.json:
+
+```dotenv
+OPENAI_API_KEY=основной_ключ
+OPENAI_API_KEY_BACKUP=резервный_ключ
+OPENAI_MODEL=идентификатор_доступной_модели
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Резервный ключ необязателен. Модель должна поддерживать Responses API и быть доступна
+проектам обоих ключей. Не добавляйте префикс NEXT_PUBLIC_. Файл исключён из Git.
+На хостинге задайте эти переменные в настройках окружения.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. Запустите `npm run dev`, откройте http://localhost:3000.
+5. После изменения окружения перезапустите сервер.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`npm run build` — production-сборка; `npm run lint` — ESLint.
 
-## Learn More
+## Файлы
 
-To learn more about Next.js, take a look at the following resources:
+- lib/types.ts — TaskCard и Proposal.
+- lib/openai.ts — серверное подключение и резервный ключ.
+- lib/ai.ts — промпты и проверка JSON через Zod.
+- lib/api/tasks.ts — вызов API из браузера и сохранение черновика в store.
+- app/api/analyze/route.ts, app/api/card/route.ts — POST-обработчики.
+- lib/score.ts — рейтинг.
+- lib/store.ts — состояние одной вкладки, публикация, отклики.
+- lib/seed.ts — 8 вымышленных задач, 5 команд, 8 откликов.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Не импортируйте AI-модули в клиентские компоненты: вызывайте API через fetch.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API для интерфейса
 
-## Deploy on Vercel
+Оба endpoint принимают POST с Content-Type: application/json.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### /api/analyze
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```json
+{"text":"У нас кофейня. Заявки на доставку записываем в блокнот и иногда теряем заказы."}
+```
+
+Текст — от 1 до 15000 символов после trim. Ответ:
+
+```json
+{
+  "gaps": [{"field":"users","description":"Не указаны пользователи решения"}],
+  "questions": [{"field":"users","question":"Кто будет работать с заявками?"}]
+}
+```
+
+Это пример структуры. Обычно вопросов 3–6, если пробелов меньше — вопросов меньше.
+Если пробелов нет, оба массива пустые. Промпт запрещает спрашивать об уже известных сведениях.
+
+### /api/card
+
+```json
+{
+  "text":"У нас кофейня. Заявки на доставку записываем в блокнот и иногда теряем заказы.",
+  "answers":[
+    {"field":"users","answer":"Два администратора кофейни"},
+    {"field":"successCriteria","answer":"Сократить оформление заказа до 2 минут"}
+  ]
+}
+```
+
+Берите field из вопроса. Допустимые поля: title, topic, context, need, users, data,
+constraints, expectedResult, successCriteria, contact, interactionFormat.
+До 11 ответов по 3000 символов, без повторяющихся полей. Без ответов передайте [].
+
+Ответ: `{ card: TaskCard, score: { total, level, categories, hints } }`.
+Неизвестное заполняется «Не указано». ID, draft-статус, пустой proposals, score и level
+задаёт код. Генерация не сохраняет и не публикует карточку автоматически.
+
+### Ошибки
+
+Проверяйте response.ok. Формат: `{ error: string, retryable: boolean }`.
+
+| HTTP | Причина | Действие |
+| --- | --- | --- |
+| 400 | Неверный JSON или входные данные | Исправить запрос |
+| 503 | Не задан основной ключ или модель | Настроить окружение |
+| 502 | Сбой AI или неверная структура ответа | Показать Retry |
+
+Сейчас 502 объединяет ошибки провайдера и формата. Повтор не исправит неверный ключ,
+недоступную модель или отсутствие кредитов. Секреты и ответы провайдера клиенту не передаются.
+
+Резервный ключ включается при 429 с кодом insufficient_quota или credit_balance_exhausted.
+Основной повторно проверяется через 5 минут в каждом серверном процессе.
+Остальные ошибки, включая ограничение частоты запросов, ключ не переключают.
+
+## Store и правила каталога
+
+useTaskStore хранит данные в памяти одной вкладки и начинается с seed.
+Перезагрузка сбрасывает изменения; разные вкладки и устройства не синхронизируются.
+Демонстрируйте обе роли в одной вкладке. Store не является серверной БД.
+
+```ts
+import { useTaskStore, getCatalog } from "@/lib/store";
+import { createTaskDraft } from "@/lib/api/tasks";
+
+const { card, score } = await createTaskDraft(text, answers);
+// Черновик уже в store. Повторно вызывать addDraft не нужно.
+useTaskStore.getState().updateTask(card.id, { users: "Администраторы кофейни" });
+// Только по явному подтверждению бизнеса:
+useTaskStore.getState().publishTask(card.id);
+```
+
+В React подпишитесь на `useTaskStore(state => state.tasks)`, затем отдельно или в useMemo
+вызовите `getCatalog(tasks, { topic, level })`. Не вызывайте getCatalog внутри
+Zustand-селектора: он создаёт новый массив.
+
+- addDraft(card) — новый черновик; updateTask(id, changes) — только текстовые поля.
+  Обе операции пересчитывают score и level.
+- publishTask(id) — публикация после подтверждения бизнеса.
+- submitProposal(taskId, { team, idea, plan, deadline, link }) — возвращает ID отклика.
+  Все поля, кроме ссылки, должны быть заполнены.
+- acceptProposal(taskId, proposalId) — pending → accepted, задача → in_progress.
+  Можно принять одну команду, другие отклики автоматически не отклоняются.
+- rejectProposal(taskId, proposalId) — pending → rejected.
+  Повторное решение по тому же отклику запрещено.
+
+Методы выбрасывают Error при неверных действиях. Показывайте сообщение в интерфейсе.
+Для разбивки после редактирования вызывайте calculateScore(card): store хранит total в score и level.
+
+Каталог показывает только published и сортирует по score по убыванию, при равенстве — по ID.
+Фильтры темы и уровня применяются совместно. После Accept задача остаётся в store,
+но исчезает из каталога и закрывается для новых откликов. Минимального score для публикации нет.
+
+## Формула рейтинга
+
+Пробелы нормализуются. Пусто или «Не указано» без учёта регистра — 0.
+Короткий текст — Math.floor(maxScore / 2), текст начиная с порога — максимум.
+
+| Категория | Максимум | Порог полного текста |
+| --- | ---: | --- |
+| Context + Need | 20 | context и need по 10; каждый от 40 символов |
+| Data | 20 | data: 40 символов |
+| Expected Result | 15 | expectedResult: 40 символов |
+| Success Criteria | 15 | 8 за длину от 40 символов + 7 за числовой показатель |
+| Constraints | 10 | constraints: 40 символов |
+| Users | 10 | users: 40 символов |
+| Business Contact | 10 | contact: 10 символов |
+
+interactionFormat остаётся в карточке, но не влияет на score по текущему ТЗ.
+
+Числовой показатель: есть цифра, русская или латинская буква и хотя бы четыре слова.
+Это простая эвристика, а не проверка реалистичности цели.
+Hints показывают только потерянные баллы; сумма прибавок равна 100 − total.
+
+Уровни: Draft 0–39, Working 40–69, Ready 70–89, Priority 90–100.
+Уровень качества и статус публикации — разные свойства.
+
+## Проверки
+
+`node scripts/check-backend.mjs` — проверки без OpenAI и без расхода кредитов.
+`node --env-file=.env.local scripts/check-backend.mjs --live` — дополнительно два
+реальных запроса через функции API-обработчиков; расходуются API-кредиты.
+Скрипт не заменяет проверку HTTP-маршрутизации и интерфейса в запущенном Next.js.
+
+## Сценарий демо
+
+1. Business: введите пример про кофейню из раздела API.
+2. Ответьте на вопросы и создайте карточку.
+3. Сохраните черновик, проверьте неизвестные поля и score.
+4. Улучшите описание пользователей и критерий успеха, проверьте пересчёт.
+5. Подтвердите публикацию и найдите задачу в каталоге.
+6. В той же вкладке переключитесь на Student и отправьте отклик.
+7. Business: примите отклик; задача перейдёт в in_progress.
+8. Проверьте Reject на другом pending-отклике.
+9. Проверьте Retry при сбое и отсутствие публикации без подтверждения.
+
+Бейджи, XP, рекомендации и дашборды — после проверки основного пути.

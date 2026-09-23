@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { calculateScore } from "@/lib/score";
+import { useTaskStore } from "@/lib/store";
 import { ClarifyStep } from "./clarify-step";
 import { CreateTaskError } from "./create-task-error";
 import { CreateTaskLoading } from "./create-task-loading";
@@ -77,8 +79,15 @@ export function CreateTaskFlow() {
     setPhase("building");
     try {
       const result = await generateTaskCard({ description: description.trim(), analysis, answers: nextAnswers });
-      setCard({ ...result.card, ...manualEdits });
-      setScore(result.score);
+      const store = useTaskStore.getState();
+      const previousDraft = store.tasks.find((task) => task.id === card?.id && task.status === "draft");
+      const draft = { ...result.card, ...manualEdits, id: previousDraft?.id ?? result.card.id };
+      // Rebuilding a draft replaces its content instead of leaving duplicate drafts.
+      if (previousDraft) store.updateTask(draft.id, draft);
+      else store.addDraft(draft);
+      const saved = useTaskStore.getState().tasks.find((task) => task.id === draft.id)!;
+      setCard(saved);
+      setScore(calculateScore(saved));
       setConfirmed(false);
       setPhase("review");
     } catch (error) {
@@ -154,9 +163,25 @@ export function CreateTaskFlow() {
   }
 
   function editCardField(field: CardField, value: string) {
+    if (!card) return;
+    const edited = { ...card, [field]: value };
+    const nextScore = calculateScore(edited);
     setManualEdits((current) => ({ ...current, [field]: value }));
-    setCard((current) => current ? { ...current, [field]: value } : current);
+    setCard({ ...edited, score: nextScore.total, level: nextScore.level });
+    setScore(nextScore);
     setConfirmed(false);
+  }
+
+  function confirmCard() {
+    if (!card) return;
+    const store = useTaskStore.getState();
+    // Save manual edits, then publish only on the business's explicit confirmation.
+    store.updateTask(card.id, card);
+    store.publishTask(card.id);
+    const published = useTaskStore.getState().tasks.find((task) => task.id === card.id)!;
+    setCard(published);
+    setScore(calculateScore(published));
+    setConfirmed(true);
   }
 
   const currentQuestion = analysis?.questions[currentQuestionIndex];
@@ -205,7 +230,7 @@ export function CreateTaskFlow() {
               score={score}
               confirmed={confirmed}
               onBack={backFromReview}
-              onConfirm={() => setConfirmed(true)}
+              onConfirm={confirmCard}
               onEdit={editCardField}
             />
           )}

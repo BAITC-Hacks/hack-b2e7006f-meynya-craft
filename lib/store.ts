@@ -4,7 +4,7 @@ import { seedTasks } from "./seed";
 import type { ScoreResult } from "./score";
 import type { Proposal, TaskCard } from "./types";
 
-export type TaskContent = Omit<TaskCard, "id" | "score" | "status" | "proposals">;
+export type TaskContent = Omit<TaskCard, "id" | "score" | "level" | "status" | "proposals">;
 export type ProposalInput = Omit<Proposal, "id" | "status">;
 
 const contentFields = [
@@ -36,7 +36,8 @@ function normalizeContent(changes: Partial<TaskContent>): Partial<TaskContent> {
 }
 
 function withScore(card: TaskCard): TaskCard {
-  return { ...card, score: calculateScore(card).total };
+  const score = calculateScore(card);
+  return { ...card, score: score.total, level: score.level };
 }
 
 function pendingProposal(task: TaskCard, proposalId: string): Proposal {

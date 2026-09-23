@@ -29,14 +29,16 @@ function proposal(
 }
 
 // Defaults make intentionally incomplete cards useful for the score-improvement demo.
-function task(input: Pick<TaskCard, "id" | "title" | "topic"> & Partial<Omit<TaskCard, "score">>): TaskCard {
+function task(input: Pick<TaskCard, "id" | "title" | "topic"> & Partial<Omit<TaskCard, "score" | "level">>): TaskCard {
   const card: TaskCard = {
     context: "Не указано", need: "Не указано", users: "Не указано",
     data: "Не указано", constraints: "Не указано", expectedResult: "Не указано",
     successCriteria: "Не указано", contact: "Не указано", interactionFormat: "Не указано",
-    status: "published", proposals: [], ...input, score: 0,
+    status: "published", proposals: [], ...input, score: 0, level: "Draft",
   };
-  card.score = calculateScore(card).total;
+  const score = calculateScore(card);
+  card.score = score.total;
+  card.level = score.level;
   return card;
 }
 

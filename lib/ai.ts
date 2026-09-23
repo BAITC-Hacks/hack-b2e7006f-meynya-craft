@@ -39,7 +39,7 @@ const analysisSchema = z.object({
   if (result.questions.some((question) => !gaps.has(question.field))) {
     ctx.addIssue({ code: "custom", message: "Вопрос должен относиться к найденному пробелу." });
   }
-  const minimum = Math.min(4, gaps.size);
+  const minimum = Math.min(3, gaps.size);
   if (result.questions.length < minimum) {
     ctx.addIssue({ code: "custom", message: "Недостаточно уточняющих вопросов." });
   }
@@ -91,8 +91,8 @@ export async function analyzeTask(text: string): Promise<TaskAnalysis> {
 Верни объект {"gaps":[{"field":"users","description":"Неясно, кто будет пользоваться решением"}],"questions":[{"field":"users","question":"Кто будет пользоваться решением?"}]}.
 Пример показывает формат, а не обязательный вопрос.
 Каждое поле должно встречаться в gaps не больше одного раза.
-Выбери 4–6 самых важных пробелов и задай по одному вопросу для каждого.
-Если пробелов меньше четырёх, задай по одному вопросу на каждый; если их нет, верни два пустых массива.
+Выбери 3–6 самых важных пробелов и задай по одному вопросу для каждого.
+Если пробелов меньше трёх, задай по одному вопросу на каждый; если их нет, верни два пустых массива.
 Каждый question.field должен присутствовать в gaps. Не задавай повторных вопросов.
 Пиши коротко: каждый вопрос и описание не длиннее 300 символов.`);
 
@@ -123,7 +123,7 @@ export async function buildTaskCard(text: string, answers: TaskAnswer[]): Promis
 Пустой ответ или "Не указано" не стирает сведения, уже явно указанные в исходном тексте.
 Если сведения отсутствуют в обоих источниках, запиши "Не указано".
 Название и тему можно кратко сформулировать из исходного текста без добавления фактов.
-Не добавляй id, score, status, proposals или другие поля: их задаёт сервер.
+Не добавляй id, score, level, status, proposals или другие поля: их задаёт сервер.
 Не придумывай измеримые критерии ради высокого score.
 Пиши компактно: каждое поле не длиннее 300 символов.`);
 
@@ -136,9 +136,12 @@ export async function buildTaskCard(text: string, answers: TaskAnswer[]): Promis
     ...content.data,
     id: randomUUID(),
     score: 0,
+    level: "Draft",
     status: "draft",
     proposals: [],
   };
-  card.score = calculateScore(card).total;
+  const score = calculateScore(card);
+  card.score = score.total;
+  card.level = score.level;
   return card;
 }

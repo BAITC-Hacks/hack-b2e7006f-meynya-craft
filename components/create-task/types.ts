@@ -1,7 +1,7 @@
 import type { ScoreResult } from "@/lib/score";
 import type { TaskCard as BackendTaskCard } from "@/lib/types";
 
-type TaskCardContent = Omit<BackendTaskCard, "id" | "score" | "status" | "proposals">;
+type TaskCardContent = Omit<BackendTaskCard, "id" | "score" | "level" | "status" | "proposals">;
 
 export const fieldLabels = {
   title: "Название", topic: "Тема", context: "Бизнес-контекст", need: "Бизнес-потребность", users: "Целевые пользователи",
