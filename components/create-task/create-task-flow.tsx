@@ -9,7 +9,7 @@ import { CreateTaskError } from "./create-task-error";
 import { CreateTaskLoading } from "./create-task-loading";
 import { CreateTaskStepper } from "./create-task-stepper";
 import { DescribeStep } from "./describe-step";
-import { estimateClarificationCompleteness } from "./demo";
+import { estimateClarificationCompleteness, isMeaningfulClarificationAnswer } from "./demo";
 import { TaskAnalysis } from "./task-analysis";
 import { TaskCardReview } from "./task-card-review";
 import { analyzeTask, generateTaskCard, TaskApiError } from "./task-api";
@@ -44,7 +44,7 @@ export function CreateTaskFlow() {
 
   const answeredCount = useMemo(() => {
     if (!analysis) return 0;
-    return analysis.questions.filter((question) => Boolean(answers[question.id]?.trim())).length;
+    return analysis.questions.filter((question) => isMeaningfulClarificationAnswer(answers[question.id] ?? "")).length;
   }, [analysis, answers]);
 
   const completeness = analysis
@@ -123,6 +123,10 @@ export function CreateTaskFlow() {
     const question = analysis.questions[currentQuestionIndex];
     if (!answers[question.id]?.trim() && !skipped[question.id]) {
       setQuestionError("Добавьте ответ или выберите «Пока не знаю».");
+      return;
+    }
+    if (!skipped[question.id] && !isMeaningfulClarificationAnswer(answers[question.id] ?? "")) {
+      setQuestionError("Добавьте содержательный ответ с конкретной информацией или выберите «Пока не знаю».");
       return;
     }
     setQuestionError(null);
