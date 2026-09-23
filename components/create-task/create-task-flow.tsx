@@ -102,7 +102,7 @@ export function CreateTaskFlow() {
     if (!analysis) return;
     const question = analysis.questions[currentQuestionIndex];
     if (!answers[question.id]?.trim() && !skipped[question.id]) {
-      setQuestionError("Add an answer or choose “I don't know yet”.");
+      setQuestionError("Добавьте ответ или выберите «Пока не знаю».");
       return;
     }
     setQuestionError(null);
@@ -152,11 +152,14 @@ export function CreateTaskFlow() {
   const currentQuestion = analysis?.questions[currentQuestionIndex];
 
   return (
-    <main className="min-h-screen bg-[#E5E8E1] text-[#283541]">
-      <header className="border-b border-[#445363]/10 bg-[#f7f7f4]/90">
+    <main
+      className="min-h-screen bg-[#DCE0E8]/35 text-[#27363F]"
+      style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}
+    >
+      <header className="border-b border-[#8EA1AE]/25 bg-white/85 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <span className="text-lg font-bold tracking-tight text-[#283541]">Taskup</span>
-          <span className="text-xs font-medium uppercase tracking-[0.14em] text-[#445363]/55">Business task builder</span>
+          <span className="text-xl font-bold tracking-[-0.03em] text-[#27363F]">Taskup</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#685652]/65">Конструктор бизнес-задач</span>
         </div>
       </header>
 

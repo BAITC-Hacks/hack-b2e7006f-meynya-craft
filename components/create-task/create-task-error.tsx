@@ -11,25 +11,25 @@ type Props = {
 export function CreateTaskError({ kind, onRetry, onEdit }: Props) {
   const analyze = kind === "analyze";
   return (
-    <Card className="mx-auto max-w-xl border-0 bg-white shadow-sm ring-[#A94228]/15">
+    <Card className="mx-auto max-w-xl rounded-2xl border border-[#8EA1AE]/25 bg-white/95 shadow-[0_18px_55px_rgba(39,54,63,0.08)] ring-0">
       <CardContent className="space-y-6 p-7 sm:p-9">
         <div className="space-y-3 text-center">
-          <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[#A94228]/10 text-[#A94228]">
+          <span className="mx-auto flex size-11 items-center justify-center rounded-full bg-[#6B212C]/10 text-[#6B212C]">
             <AlertCircle className="size-5" />
           </span>
-          <h1 className="text-2xl font-semibold text-[#283541]">
-            {analyze ? "We couldn't analyze the task." : "We couldn't build the task card."}
+          <h1 className="text-2xl font-semibold tracking-[-0.025em] text-[#27363F]">
+            {analyze ? "Не удалось проанализировать задачу." : "Не удалось сформировать карточку."}
           </h1>
-          {analyze && <p className="text-sm text-[#445363]/70">Your description is safe. Try again or edit it before retrying.</p>}
+          {analyze && <p className="text-sm text-[#685652]/75">Описание сохранено. Попробуйте ещё раз или отредактируйте его.</p>}
         </div>
         <div className="flex flex-col-reverse justify-center gap-3 sm:flex-row">
           {onEdit && (
-            <Button variant="outline" size="lg" onClick={onEdit} className="h-10 border-[#445363]/20">
-              <ArrowLeft /> Edit description
+            <Button variant="outline" size="lg" onClick={onEdit} className="h-10 rounded-xl border-[#8EA1AE]/35 text-[#685652] hover:bg-[#DCE0E8]/50">
+              <ArrowLeft /> Изменить описание
             </Button>
           )}
-          <Button size="lg" onClick={onRetry} className="h-10 bg-[#A94228] text-white hover:bg-[#923922]">
-            <RotateCcw /> Try again
+          <Button size="lg" onClick={onRetry} className="h-10 rounded-xl bg-[#6B212C] text-white shadow-sm hover:bg-[#571923] focus-visible:ring-[#6B212C]/25">
+            <RotateCcw /> Повторить
           </Button>
         </div>
       </CardContent>

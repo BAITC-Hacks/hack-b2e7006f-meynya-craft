@@ -1,8 +1,8 @@
 // Frontend-only contract until teammate B supplies lib/types.ts.
 export const fieldLabels = {
-  context: "Business context", businessNeed: "Business need", users: "Target users",
-  data: "Available data", expectedResult: "Expected result", successCriteria: "Success criteria",
-  constraints: "Constraints", contact: "Business contact", collaborationFormat: "Collaboration format",
+  context: "Бизнес-контекст", businessNeed: "Бизнес-потребность", users: "Целевые пользователи",
+  data: "Доступные данные", expectedResult: "Ожидаемый результат", successCriteria: "Критерии успеха",
+  constraints: "Ограничения", contact: "Контактное лицо", collaborationFormat: "Формат взаимодействия",
 } as const;
 export type TaskFieldKey = keyof typeof fieldLabels;
 export type TaskFieldStatus = "complete" | "partial" | "missing";

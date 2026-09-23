@@ -12,6 +12,11 @@ const keyAreas: TaskFieldKey[] = [
   "successCriteria",
   "constraints",
 ];
+const statusLabels = {
+  complete: "Готово",
+  partial: "Нужно уточнить",
+  missing: "Не указано",
+} as const;
 
 type Props = {
   analysis: TaskAnalysisValue;
@@ -27,27 +32,27 @@ export function TaskAnalysis({ analysis, demo, onBack, onContinue }: Props) {
     <div className="space-y-7">
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#A94228]">Task analysis</p>
-          {demo && <span className="rounded-full bg-[#C9AE84]/20 px-2.5 py-1 text-xs font-medium text-[#6e5735]">Demo fallback</span>}
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#6B212C]">Анализ задачи</p>
+          {demo && <span className="rounded-full bg-[#DCE0E8]/70 px-2.5 py-1 text-xs font-medium text-[#685652]">Демо-режим</span>}
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight text-[#283541]">
-          {completeCount} of {keyAreas.length} key areas are clear
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#27363F] sm:text-4xl">
+          Готово разделов: {completeCount} из {keyAreas.length}
         </h1>
-        <p className="text-base text-[#445363]/75">Let&apos;s fill the gaps. It will take about 1 minute.</p>
+        <p className="text-base text-[#685652]/80">Заполним пробелы — это займёт около минуты.</p>
       </div>
 
-      <Card className="border-0 bg-white py-0 shadow-sm ring-[#445363]/10">
-        <CardContent className="divide-y divide-[#445363]/10 p-0">
+      <Card className="rounded-2xl border border-[#8EA1AE]/25 bg-white/95 py-0 shadow-[0_18px_55px_rgba(39,54,63,0.08)] ring-0">
+        <CardContent className="divide-y divide-[#8EA1AE]/20 p-0">
           {keyAreas.map((key) => {
             const status = analysis.fields[key];
             const Icon = status === "complete" ? CheckCircle2 : status === "partial" ? AlertTriangle : CircleAlert;
             return (
               <div key={key} className="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
                 <div className="flex items-center gap-3">
-                  <Icon className={status === "complete" ? "size-5 text-[#55705d]" : status === "partial" ? "size-5 text-[#9a7443]" : "size-5 text-[#445363]/45"} />
-                  <span className="font-medium text-[#283541]">{fieldLabels[key]}</span>
+                  <Icon className={status === "complete" ? "size-5 text-[#6B212C]" : status === "partial" ? "size-5 text-[#685652]" : "size-5 text-[#8EA1AE]"} />
+                  <span className="font-medium text-[#27363F]">{fieldLabels[key]}</span>
                 </div>
-                <span className="text-xs capitalize text-[#445363]/55">{status}</span>
+                <span className="text-xs font-medium text-[#685652]/70">{statusLabels[status]}</span>
               </div>
             );
           })}
@@ -55,11 +60,11 @@ export function TaskAnalysis({ analysis, demo, onBack, onContinue }: Props) {
       </Card>
 
       <div className="flex items-center justify-between gap-3">
-        <Button variant="ghost" size="lg" onClick={onBack} className="h-10 text-[#445363]">
-          <ArrowLeft /> Back
+        <Button variant="ghost" size="lg" onClick={onBack} className="h-10 text-[#685652] hover:bg-[#DCE0E8]/60 hover:text-[#27363F]">
+          <ArrowLeft /> Назад
         </Button>
-        <Button size="lg" onClick={onContinue} className="h-10 bg-[#A94228] px-5 text-white hover:bg-[#923922]">
-          Continue <ArrowRight />
+        <Button size="lg" onClick={onContinue} className="h-10 rounded-xl bg-[#6B212C] px-5 text-white shadow-sm hover:bg-[#571923] focus-visible:ring-[#6B212C]/25">
+          Продолжить <ArrowRight />
         </Button>
       </div>
     </div>
